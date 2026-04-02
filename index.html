@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pro Pharmacy Notes</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #121212;
+      color: white;
+      text-align: center;
+    }
+    .container {
+      width: 500px;
+      margin: auto;
+      background: #1e1e1e;
+      padding: 20px;
+      border-radius: 12px;
+      margin-top: 30px;
+      box-shadow: 0 0 10px black;
+    }
+    input, select {
+      padding: 10px;
+      margin: 5px;
+      width: 70%;
+      border-radius: 5px;
+      border: none;
+    }
+    button {
+      padding: 8px 12px;
+      margin: 5px;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    .add { background: green; color: white; }
+    .edit { background: orange; color: white; }
+    .delete { background: red; color: white; }
+    .logout { background: crimson; color: white; }
+    li {
+      list-style: none;
+      background: #2c2c2c;
+      margin: 10px;
+      padding: 10px;
+      border-radius: 6px;
+      text-align: left;
+    }
+    #loginBox {
+      margin-top: 100px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="loginBox">
+  <h2>🔐 Login</h2>
+  <input type="text" id="username" placeholder="Enter username"><br>
+  <button onclick="login()">Login</button>
+</div>
+
+<div class="container" id="app" style="display:none;">
+  <h2>💊 Pharmacy Notes (Pro)</h2>
+
+  <button class="logout" onclick="logout()">Logout</button><br>
+
+  <input type="text" id="search" placeholder="Search notes..." onkeyup="displayNotes()"><br>
+
+  <select id="category">
+    <option>All</option>
+    <option>Pharmaceutics</option>
+    <option>Pharmacology</option>
+    <option>Pharmaceutical Chemistry</option>
+    <option>Pharmacognosy</option>
+  </select><br>
+
+  <input type="text" id="noteInput" placeholder="Enter note">
+  <button class="add" onclick="addNote()">Add</button>
+
+  <ul id="notesList"></ul>
+</div>
+
+<script>
+let user = localStorage.getItem("user");
+if(user){
+  document.getElementById("loginBox").style.display="none";
+  document.getElementById("app").style.display="block";
+}
+
+function login(){
+  let u = document.getElementById("username").value;
+  if(u==="") return alert("Enter username");
+  localStorage.setItem("user", u);
+  location.reload();
+}
+
+function logout(){
+  localStorage.removeItem("user");
+  location.reload();
+}
+
+let notes = JSON.parse(localStorage.getItem("notes")) || [
+  {cat:"Pharmacology", text:"Receptors bind drugs", date:new Date().toLocaleString()},
+  {cat:"Pharmaceutics", text:"Bioavailability = drug absorption", date:new Date().toLocaleString()}
+];
+
+function saveNotes(){
+  localStorage.setItem("notes", JSON.stringify(notes));
+}
+
+function displayNotes(){
+  let list = document.getElementById("notesList");
+  let search = document.getElementById("search").value.toLowerCase();
+  let cat = document.getElementById("category").value;
+
+  list.innerHTML="";
+
+  notes.forEach((n,i)=>{
+    if((cat==="All"||n.cat===cat) && n.text.toLowerCase().includes(search)){
+      let li=document.createElement("li");
+      li.innerHTML = `<b>${n.cat}</b> - ${n.text}
+      <br><small>${n.date}</small><br>
+      <button class="edit" onclick="editNote(${i})">Edit</button>
+      <button class="delete" onclick="deleteNote(${i})">Delete</button>`;
+      list.appendChild(li);
+    }
+  });
+}
+
+function addNote(){
+  let text=document.getElementById("noteInput").value;
+  let cat=document.getElementById("category").value;
+
+  if(text==="") return alert("Note likh!");
+
+  notes.push({cat,text,date:new Date().toLocaleString()});
+  saveNotes();
+  displayNotes();
+  document.getElementById("noteInput").value="";
+}
+
+function deleteNote(i){
+  notes.splice(i,1);
+  saveNotes();
+  displayNotes();
+}
+
+function editNote(i){
+  let newText=prompt("Edit note:",notes[i].text);
+  if(newText){
+    notes[i].text=newText;
+    saveNotes();
+    displayNotes();
+  }
+}
+
+displayNotes();
+</script>
+
+</body>
+</html>
